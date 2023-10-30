@@ -5,37 +5,41 @@ from aiogram.types import Message
 import json
 from mongo import Mongo_DB
 from dotenv import load_dotenv
+
 load_dotenv()
 from os import getenv
 
-TOKEN = getenv('TOKEN')
-bot= Bot(TOKEN, parse_mode='html')
-dp =Dispatcher()
+TOKEN = getenv("TOKEN")
+bot = Bot(TOKEN, parse_mode="html")
+dp = Dispatcher()
 MDB = Mongo_DB("user", "user", port=27018)
 MDB.set_db_collection("payments", "payments")
 
 
-
-
-
 @dp.message(CommandStart())
-async def start(message:Message):
-    await message.answer('Пришлите входные данные')
+async def start(message: Message):
+    await message.answer("Пришлите входные данные")
+
 
 @dp.message()
-async def message_input(message:Message):
-    dump:dict= json.loads(message.text)
+async def message_input(message: Message):
+    dump: dict = json.loads(message.text)
     try:
-        text=MDB.make_aggrigate(dt_from=dump.get('dt_from'), dt_upto=dump.get('dt_upto'),group_type=dump.get('group_type'))
+        text = MDB.make_aggrigate(
+            dt_from=dump.get("dt_from"),
+            dt_upto=dump.get("dt_upto"),
+            group_type=dump.get("group_type"),
+        )
+        text=json.dumps(text)
         await message.answer(text)
-    except:
-        await message.answer('Случилась непредвиденная ошибка')
-
-
+    except Exception as e:
+        await message.answer("Случилась непредвиденная ошибка")
+        print(e)
 
 
 async def main():
     await dp.start_polling(bot)
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
